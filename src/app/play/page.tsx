@@ -1327,7 +1327,7 @@ function PlayPageClient() {
         },
         // Chromecast 插件
         plugins: [
-          ArtplayerPluginChromecast({
+          (ArtplayerPluginChromecast as any)({
             // 默认的 Chromecast Application ID
             appId: 'CC1AD845',
             // 默认的媒体播放器URL，指向 ArtPlayer 的示例接收器
