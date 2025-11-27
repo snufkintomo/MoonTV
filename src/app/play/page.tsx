@@ -3,6 +3,8 @@
 'use client';
 
 import Artplayer from 'artplayer';
+// @ts-ignore
+import ArtplayerPluginChromecast from 'artplayer-plugin-chromecast';
 import Hls from 'hls.js';
 import { Heart } from 'lucide-react';
 import { useRouter, useSearchParams } from 'next/navigation';
@@ -1323,6 +1325,19 @@ function PlayPageClient() {
         moreVideoAttr: {
           crossOrigin: 'anonymous',
         },
+        // Chromecast 插件
+        plugins: [
+          ArtplayerPluginChromecast({
+            // 默认的 Chromecast Application ID
+            appId: 'CC1AD845',
+            // 默认的媒体播放器URL，指向 ArtPlayer 的示例接收器
+            metadata: {
+              title: videoTitle,
+              subtitle: `第${currentEpisodeIndex + 1}集`,
+              images: [{ url: videoCover, height: 480, width: 320 }],
+            },
+          }),
+        ],
         // HLS 支持配置
         customType: {
           m3u8: function (video: HTMLVideoElement, url: string) {

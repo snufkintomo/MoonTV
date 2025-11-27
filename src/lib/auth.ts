@@ -1,5 +1,7 @@
 import { NextRequest } from 'next/server';
 
+export const AUTH_COOKIE_EXPIRES_DAYS = 36000; // 认证Cookie过期时间（天），默认为 30 天
+
 // 从cookie获取认证信息 (服务端使用)
 export function getAuthInfoFromCookie(request: NextRequest): {
   password?: string;

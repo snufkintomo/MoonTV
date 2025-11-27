@@ -1,6 +1,7 @@
 /* eslint-disable no-console,@typescript-eslint/no-explicit-any */
 import { NextRequest, NextResponse } from 'next/server';
 
+import { AUTH_COOKIE_EXPIRES_DAYS } from '@/lib/auth';
 import { getConfig } from '@/lib/config';
 import { db } from '@/lib/db';
 
@@ -109,7 +110,7 @@ export async function POST(req: NextRequest) {
         true
       ); // localstorage 模式包含 password
       const expires = new Date();
-      expires.setDate(expires.getDate() + 7); // 7天过期
+      expires.setDate(expires.getDate() + AUTH_COOKIE_EXPIRES_DAYS); // 使用配置的过期时间
 
       response.cookies.set('auth', cookieValue, {
         path: '/',
@@ -146,7 +147,7 @@ export async function POST(req: NextRequest) {
         false
       ); // 数据库模式不包含 password
       const expires = new Date();
-      expires.setDate(expires.getDate() + 7); // 7天过期
+      expires.setDate(expires.getDate() + AUTH_COOKIE_EXPIRES_DAYS); // 使用配置的过期时间
 
       response.cookies.set('auth', cookieValue, {
         path: '/',
@@ -186,7 +187,7 @@ export async function POST(req: NextRequest) {
         false
       ); // 数据库模式不包含 password
       const expires = new Date();
-      expires.setDate(expires.getDate() + 7); // 7天过期
+      expires.setDate(expires.getDate() + AUTH_COOKIE_EXPIRES_DAYS); // 使用配置的过期时间
 
       response.cookies.set('auth', cookieValue, {
         path: '/',

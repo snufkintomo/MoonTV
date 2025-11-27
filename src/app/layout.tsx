@@ -103,6 +103,9 @@ export default async function RootLayout({
             __html: `window.RUNTIME_CONFIG = ${JSON.stringify(runtimeConfig)};`,
           }}
         />
+        {/* Google Cast SDK for Chromecast support */}
+        {/* eslint-disable-next-line @next/next/no-sync-scripts */}
+        <script src="https://www.gstatic.com/cv/js/sender/v1/cast_sender.js?loadCastFramework=1"></script>
       </head>
       <body
         className={`${inter.className} min-h-screen bg-white text-gray-900 dark:bg-black dark:text-gray-200`}
