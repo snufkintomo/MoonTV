@@ -316,7 +316,7 @@ function SearchPageClient() {
                           episodes={item.episodes.length}
                           source={item.source}
                           source_name={item.source_name}
-                          douban_id={item.douban_id?.toString()}
+                          douban_id={item.douban_id}
                           query={
                             searchQuery.trim() !== item.title
                               ? searchQuery.trim()
