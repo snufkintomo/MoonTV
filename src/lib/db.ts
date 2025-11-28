@@ -15,14 +15,20 @@ const STORAGE_TYPE =
 
 // 创建存储实例
 function createStorage(): IStorage {
-  switch (STORAGE_TYPE) {
-    case 'redis':
-      return new RedisStorage();
-    case 'upstash':
-      return new UpstashRedisStorage();
-    case 'localstorage':
-    default:
-      return null as unknown as IStorage;
+  try {
+    switch (STORAGE_TYPE) {
+      case 'redis':
+        return new RedisStorage();
+      case 'upstash':
+        return new UpstashRedisStorage();
+      case 'localstorage':
+      default:
+        return null as unknown as IStorage;
+    }
+  } catch (e) {
+    console.error(`Failed to create storage client for ${STORAGE_TYPE}:`, e);
+    // Fallback to null storage if client creation fails due to missing ENV vars
+    return null as unknown as IStorage;
   }
 }
 
