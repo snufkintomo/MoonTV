@@ -16,7 +16,7 @@ import { useEffect, useState } from 'react';
 import { createPortal } from 'react-dom';
 
 import { changelog, ChangelogEntry } from '@/lib/changelog';
-import { compareVersions, CURRENT_VERSION, UpdateStatus } from '@/lib/version';
+import { CURRENT_VERSION, UpdateStatus } from '@/lib/version';
 
 interface VersionPanelProps {
   isOpen: boolean;
@@ -65,13 +65,12 @@ export const VersionPanel: React.FC<VersionPanelProps> = ({
         const parsed = parseChangelog(content);
         setRemoteChangelog(parsed);
 
-        // 检查是否有更新
+        // 检查是否有更新 (版本检查已禁用)
         if (parsed.length > 0) {
           const latest = parsed[0];
           setLatestVersion(latest.version);
-          setIsHasUpdate(
-            compareVersions(latest.version) === UpdateStatus.HAS_UPDATE
-          );
+          // 始终视为无更新，因为远程版本检查已禁用
+          setIsHasUpdate(false);
         }
       } else {
         console.error(
