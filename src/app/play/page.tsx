@@ -560,17 +560,19 @@ function PlayPageClient() {
       },
       (error: any) => {
         console.error('Chromecast Load Media Error:', error);
-        artPlayerRef.current?.notice.show = `投屏失败: ${error.code || error}`;
+        if (artPlayerRef.current) {
+          artPlayerRef.current.notice.show = `投屏失败: ${error.code || error}`;
+        }
       }
     );
   };
 
   const initializeCastFramework = () => {
-    // @ts-ignore
-    if (!window.cast || !window.cast.framework) return;
+    const w = window as any;
 
-    // @ts-ignore
-    const context = window.cast.framework.CastContext.getInstance();
+    if (!w.cast || !w.cast.framework) return;
+
+    const context = w.cast.framework.CastContext.getInstance();
     context.setOptions({
       receiverApplicationId: CAST_APP_ID,
       autoJoinPolicy: chrome.cast.AutoJoinPolicy.ORIGIN_SCOPED,
@@ -578,26 +580,22 @@ function PlayPageClient() {
     });
 
     context.addEventListener(
-      // @ts-ignore
-      window.cast.framework.CastContextEventType.SESSION_STATE_CHANGED,
+      w.cast.framework.CastContextEventType.SESSION_STATE_CHANGED,
       (event: any) => {
         const state = event.sessionState;
         const session = event.session;
 
-        // @ts-ignore
         if (
-          state === window.cast.framework.SessionState.SESSION_STARTED ||
-          state === window.cast.framework.SessionState.SESSION_RESUMED
+          state === w.cast.framework.SessionState.SESSION_STARTED ||
+          state === w.cast.framework.SessionState.SESSION_RESUMED
         ) {
           currentCastSessionRef.current = session;
           console.log('Chromecast Session started/resumed');
           // If a session starts, we immediately load media
-          // @ts-ignore
-          if (state === window.cast.framework.SessionState.SESSION_STARTED) {
+          if (state === w.cast.framework.SessionState.SESSION_STARTED) {
             loadMediaToCast(session, artPlayerRef.current?.currentTime || 0);
           }
-          // @ts-ignore
-        } else if (state === window.cast.framework.SessionState.SESSION_ENDED) {
+        } else if (state === w.cast.framework.SessionState.SESSION_ENDED) {
           currentCastSessionRef.current = null;
           console.log('Chromecast Session ended');
           // Resume local playback if needed
@@ -607,22 +605,18 @@ function PlayPageClient() {
     );
 
     context.addEventListener(
-      // @ts-ignore
-      window.cast.framework.CastContextEventType.CAST_STATE_CHANGED,
+      w.cast.framework.CastContextEventType.CAST_STATE_CHANGED,
       (event: any) => {
         const castState = event.castState;
         const castButton = document.getElementById('art-cast');
 
-        // @ts-ignore
-        if (castState === window.cast.framework.CastState.NOT_CONNECTED) {
+        if (castState === w.cast.framework.CastState.NOT_CONNECTED) {
           castButton?.classList.remove('art-control-cast-active');
           castButton?.setAttribute('title', '投屏');
-          // @ts-ignore
-        } else if (castState === window.cast.framework.CastState.CONNECTING) {
+        } else if (castState === w.cast.framework.CastState.CONNECTING) {
           castButton?.classList.add('art-control-cast-active');
           castButton?.setAttribute('title', '连接中...');
-          // @ts-ignore
-        } else if (castState === window.cast.framework.CastState.CONNECTED) {
+        } else if (castState === w.cast.framework.CastState.CONNECTED) {
           castButton?.classList.add('art-control-cast-active');
           castButton?.setAttribute('title', '已连接');
         }
@@ -1631,16 +1625,14 @@ function PlayPageClient() {
         controls: [
           {
             position: 'right',
-            html: '<i class="art-icon flex"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M12 4C7.58 4 4 7.58 4 12s3.58 8 8 8 8-3.58 8-8-3.58-8-8-8zm0 16c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm4-12H8v2h8V8zm0 4H8v2h8v-2zm0 4H8v2h8v-2z" fill="currentColor"/></svg></i>',
+            html: '<div id="art-cast"><i class="art-icon flex"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M12 4C7.58 4 4 7.58 4 12s3.58 8 8 8 8-3.58 8-8-3.58-8-8-8zm0 16c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm4-12H8v2h8V8zm0 4H8v2h8v-2zm0 4H8v2h8v-2z" fill="currentColor"/></svg></i></div>',
             tooltip: '投屏',
-            id: 'art-cast',
             click: function (this: any) {
-              // @ts-ignore
-              if (chrome?.cast?.isCastApiLoaded) {
+              const w = window as any;
+              if (w.chrome?.cast?.isCastApiLoaded) {
                 this.art.notice.show = '正在连接 Chromecast...';
                 // 尝试启动投屏
-                // @ts-ignore
-                window.cast.framework.CastContext.getInstance().requestSession();
+                w.cast.framework.CastContext.getInstance().requestSession();
               } else {
                 this.art.notice.show = 'Chromecast SDK 未加载';
               }
