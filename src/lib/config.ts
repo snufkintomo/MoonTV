@@ -239,6 +239,7 @@ async function initConfig() {
       cachedConfig = adminConfig;
     } catch (err) {
       console.error('加载管理员配置失败:', err);
+      throw err;
     }
   } else {
     // 本地存储直接使用文件配置
