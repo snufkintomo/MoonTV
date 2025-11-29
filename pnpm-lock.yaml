@@ -35,6 +35,9 @@ importers:
       artplayer:
         specifier: ^5.2.5
         version: 5.2.5
+      artplayer-plugin-chromecast:
+        specifier: ^1.0.0
+        version: 1.0.0
       clsx:
         specifier: ^2.0.0
         version: 2.1.1
@@ -1936,6 +1939,9 @@ packages:
   arrify@1.0.1:
     resolution: {integrity: sha512-3CYzex9M9FGQjCGMGyi6/31c8GJbgb0qGyrx5HWxPd0aCwh4cB2YjMb2Xf9UuoogrMrlO9cTqnB5rI5GHZTcUA==}
     engines: {node: '>=0.10.0'}
+
+  artplayer-plugin-chromecast@1.0.0:
+    resolution: {integrity: sha512-liF1ku8OYJqycgU/9HcAJsmv3amxp9/LG2Ce/RqVcQu+gTw8MoLELRfxeMolBK159s2sesmYp4N1043pDAtkAg==}
 
   artplayer@5.2.5:
     resolution: {integrity: sha512-Ogym5rvkAJ4VLncM4Apl3TJ/a/ozM3csvY4IKuuMR++hUmEZgj/HaGsNonwx8r56nsqiZYE7O4vS1HFZl+NBSg==}
@@ -7261,6 +7267,8 @@ snapshots:
       is-array-buffer: 3.0.5
 
   arrify@1.0.1: {}
+
+  artplayer-plugin-chromecast@1.0.0: {}
 
   artplayer@5.2.5:
     dependencies:

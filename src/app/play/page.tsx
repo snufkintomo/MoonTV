@@ -3,6 +3,7 @@
 'use client';
 
 import Artplayer from 'artplayer';
+import ArtplayerPluginChromecast from 'artplayer-plugin-chromecast';
 import Hls from 'hls.js';
 import { Heart } from 'lucide-react';
 import { useRouter, useSearchParams } from 'next/navigation';
@@ -32,22 +33,7 @@ declare global {
   interface HTMLVideoElement {
     hls?: any;
   }
-
-  interface Window {
-    __onGCastApiAvailable?: (loaded: boolean) => void;
-  }
-
-  interface globalThis {
-    cast?: any;
-    chrome?: {
-      cast?: any;
-    };
-  }
 }
-// 声明 chrome.cast 变量
-declare const chrome: {
-  cast: any;
-};
 
 // Wake Lock API 类型声明
 interface WakeLockSentinel {
@@ -223,10 +209,6 @@ function PlayPageClient() {
 
   // Wake Lock 相关
   const wakeLockRef = useRef<WakeLockSentinel | null>(null);
-
-  // Chromecast 相关
-  const CAST_APP_ID = 'CC1AD845'; // Default Media Receiver ID
-  const currentCastSessionRef = useRef<any>(null);
 
   // -----------------------------------------------------------------------------
   // 工具函数（Utils）
@@ -515,115 +497,6 @@ function PlayPageClient() {
         artPlayerRef.current = null;
       }
     }
-  };
-
-  // Chromecast Media Loading and Initialization functions
-  const loadMediaToCast = (session: any, resumeTime: number) => {
-    if (!session || !videoUrlRef.current || !detailRef.current) return;
-
-    // Use current URL to determine content ID
-    const contentId = videoUrlRef.current;
-
-    // Check if the current ArtPlayer is playing HLS
-    let contentType = 'video/mp4';
-    if (contentId.toLowerCase().includes('.m3u8')) {
-      contentType = 'application/x-mpegurl'; // HLS MIME Type
-    }
-
-    const mediaInfo = new chrome.cast.media.MediaInfo(contentId, contentType);
-
-    // Set metadata for displaying on the receiver
-    mediaInfo.metadata = new chrome.cast.media.GenericMediaMetadata();
-    mediaInfo.metadata.metadataType = chrome.cast.media.MetadataType.TV_SHOW;
-    mediaInfo.metadata.title = videoTitleRef.current;
-    mediaInfo.metadata.subtitle =
-      detailRef.current?.episodes?.length > 1
-        ? `第 ${currentEpisodeIndexRef.current + 1} 集 | ${
-            detailRef.current.source_name
-          }`
-        : `${videoYearRef.current} | ${detailRef.current.source_name}`;
-
-    if (videoCover) {
-      mediaInfo.metadata.images = [
-        new chrome.cast.Image(processImageUrl(videoCover)),
-      ];
-    }
-
-    const request = new chrome.cast.media.LoadRequest(mediaInfo);
-    request.currentTime = resumeTime; // Resume time
-
-    session.loadMedia(
-      request,
-      () => {
-        console.log('Media loaded successfully on Chromecast');
-        artPlayerRef.current?.pause(); // Pause local playback
-      },
-      (error: any) => {
-        console.error('Chromecast Load Media Error:', error);
-        if (artPlayerRef.current) {
-          artPlayerRef.current.notice.show = `投屏失败: ${error.code || error}`;
-        }
-      }
-    );
-  };
-
-  const initializeCastFramework = () => {
-    const w = window as any;
-
-    if (!w.cast || !w.cast.framework) return;
-
-    const context = w.cast.framework.CastContext.getInstance();
-    context.setOptions({
-      receiverApplicationId: CAST_APP_ID,
-      autoJoinPolicy: chrome.cast.AutoJoinPolicy.ORIGIN_SCOPED,
-      language: 'zh-CN',
-    });
-
-    context.addEventListener(
-      w.cast.framework.CastContextEventType.SESSION_STATE_CHANGED,
-      (event: any) => {
-        const state = event.sessionState;
-        const session = event.session;
-
-        if (
-          state === w.cast.framework.SessionState.SESSION_STARTED ||
-          state === w.cast.framework.SessionState.SESSION_RESUMED
-        ) {
-          currentCastSessionRef.current = session;
-          console.log('Chromecast Session started/resumed');
-          // If a session starts, we immediately load media
-          if (state === w.cast.framework.SessionState.SESSION_STARTED) {
-            loadMediaToCast(session, artPlayerRef.current?.currentTime || 0);
-          }
-        } else if (state === w.cast.framework.SessionState.SESSION_ENDED) {
-          currentCastSessionRef.current = null;
-          console.log('Chromecast Session ended');
-          // Resume local playback if needed
-          // artPlayerRef.current?.play();
-        }
-      }
-    );
-
-    context.addEventListener(
-      w.cast.framework.CastContextEventType.CAST_STATE_CHANGED,
-      (event: any) => {
-        const castState = event.castState;
-        const castButton = document.getElementById('art-cast');
-
-        if (castState === w.cast.framework.CastState.NOT_CONNECTED) {
-          castButton?.classList.remove('art-control-cast-active');
-          castButton?.setAttribute('title', '投屏');
-        } else if (castState === w.cast.framework.CastState.CONNECTING) {
-          castButton?.classList.add('art-control-cast-active');
-          castButton?.setAttribute('title', '连接中...');
-        } else if (castState === w.cast.framework.CastState.CONNECTED) {
-          castButton?.classList.add('art-control-cast-active');
-          castButton?.setAttribute('title', '已连接');
-        }
-      }
-    );
-
-    console.log('Cast Framework Initialized');
   };
 
   // 去广告相关函数
@@ -1295,19 +1168,6 @@ function PlayPageClient() {
     };
   }, []);
 
-  // Chromecast API Initialization Hook
-  useEffect(() => {
-    if (typeof window !== 'undefined') {
-      window.__onGCastApiAvailable = (loaded) => {
-        if (loaded) {
-          initializeCastFramework();
-        } else {
-          console.warn('Chromecast API failed to load');
-        }
-      };
-    }
-  }, []);
-
   // ---------------------------------------------------------------------------
   // 收藏相关
   // ---------------------------------------------------------------------------
@@ -1361,7 +1221,7 @@ function PlayPageClient() {
           title: videoTitleRef.current,
           source_name: detailRef.current?.source_name || '',
           year: detailRef.current?.year,
-          cover: detailRef.current?.poster || '',
+          cover: detail.current?.poster || '',
           total_episodes: detailRef.current?.episodes.length || 1,
           save_time: Date.now(),
           search_title: searchTitle,
@@ -1467,6 +1327,8 @@ function PlayPageClient() {
         moreVideoAttr: {
           crossOrigin: 'anonymous',
         },
+        // 插件配置
+        plugins: [ArtplayerPluginChromecast({})],
         // HLS 支持配置
         customType: {
           m3u8: function (video: HTMLVideoElement, url: string) {
@@ -1623,21 +1485,6 @@ function PlayPageClient() {
         ],
         // 控制栏配置
         controls: [
-          {
-            position: 'right',
-            html: '<div id="art-cast"><i class="art-icon flex"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M21 3H3c-1.1 0-2 .9-2 2v3h2V5h18v14h-7v2h7c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zM1 18v3h3c0-1.66-1.34-3-3-3zm0-4v2c2.76 0 5 2.24 5 5h2c0-3.87-3.13-7-7-7zm0-4v2c4.85 0 9 4.15 9 9h2c0-5.94-4.81-11-11-11z" fill="currentColor"/></svg></i></div>',
-            tooltip: '投屏',
-            click: function (this: any) {
-              const w = window as any;
-              if (w.chrome?.cast?.isCastApiLoaded) {
-                this.art.notice.show = '正在连接 Chromecast...';
-                // 尝试启动投屏
-                w.cast.framework.CastContext.getInstance().requestSession();
-              } else {
-                this.art.notice.show = 'Chromecast SDK 未加载';
-              }
-            },
-          },
           {
             position: 'left',
             index: 13,
