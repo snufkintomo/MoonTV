@@ -1221,7 +1221,7 @@ function PlayPageClient() {
           title: videoTitleRef.current,
           source_name: detailRef.current?.source_name || '',
           year: detailRef.current?.year,
-          cover: detail.current?.poster || '',
+          cover: detailRef.current?.poster || '',
           total_episodes: detailRef.current?.episodes.length || 1,
           save_time: Date.now(),
           search_title: searchTitle,
